@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Drives - PMS Admin</title>
+    <link rel="stylesheet" href="../css/global.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/pages.css">
+    <link rel="stylesheet" href="../css/toast.css">
+    <style>
+        .filters-bar {
+            background: white;
+            padding: 1rem;
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-sm);
+            margin-bottom: 2rem;
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .data-table th {
+            background: #f9fafb;
+            font-weight: 600;
+            color: var(--text-light);
+        }
+
+        .data-table tr:hover {
+            background: #f9fafb;
+        }
+
+        .tag-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            padding: 0.5rem;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            background: white;
+            min-height: 42px;
+        }
+
+        .tag {
+            background: var(--primary-light);
+            color: var(--primary);
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.875rem;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .tag-close {
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .tag-input {
+            border: none;
+            outline: none;
+            flex: 1;
+            min-width: 100px;
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="container nav-container">
+            <a href="dashboard.html" class="nav-brand">PMS Admin</a>
+            <div class="nav-links">
+                <span id="user-name" class="nav-link">Admin</span>
+                <a href="#" onclick="Auth.logout()" class="nav-link">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container">
+        <div class="dashboard-grid">
+            <aside class="sidebar">
+                <nav class="sidebar-nav">
+                    <a href="dashboard.html" class="sidebar-link">Dashboard</a>
+                    <a href="students.html" class="sidebar-link">Students</a>
+                    <a href="companies.html" class="sidebar-link">Companies</a>
+                    <a href="drives.html" class="sidebar-link active">Job Drives</a>
+                    <a href="applications.html" class="sidebar-link">Applications</a>
+                </nav>
+            </aside>
+
+            <section class="content">
+                <div class="flex justify-between items-center mb-4">
+                    <h2>Manage Job Drives</h2>
+                    <button onclick="openDriveModal()" class="btn btn-primary">Create New Drive</button>
+                </div>
+
+                <!-- Filters -->
+                <div class="filters-bar">
+                    <div style="flex: 2; min-width: 200px;">
+                        <input type="text" id="search-input" class="form-control"
+                            placeholder="Search company or role...">
+                    </div>
+                    <div style="flex: 1; min-width: 150px;">
+                        <select id="filter-status" class="form-control">
+                            <option value="">All Status</option>
+                            <option value="Active">Active</option>
+                            <option value="Completed">Completed</option>
+                            <option value="Cancelled">Cancelled</option>
+                        </select>
+                    </div>
+                    <button id="filter-btn" class="btn btn-primary">Apply</button>
+                </div>
+
+                <div style="overflow-x: auto;">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Company</th>
+                                <th>Job Role</th>
+                                <th>Type</th>
+                                <th>CTC</th>
+                                <th>Deadline</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="drives-table-body">
+                            <tr>
+                                <td colspan="7" class="text-center p-4">Loading...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Drive Modal -->
+    <div id="drive-modal" class="modal hidden"
+        style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; display: none; align-items: center; justify-content: center;">
+        <div class="card" style="width: 90%; max-width: 800px; max-height: 90vh; overflow-y: auto;">
+            <div class="flex justify-between items-center mb-4">
+                <h2 id="modal-title">Create Drive</h2>
+                <button onclick="closeDriveModal()"
+                    style="background: none; border: none; font-size: 1.5rem; cursor: pointer;">&times;</button>
+            </div>
+            <form id="drive-form">
+                <input type="hidden" name="id" id="drive-id">
+
+                <div class="flex gap-4">
+                    <div class="form-group" style="flex: 1;">
+                        <label class="form-label">Company</label>
+                        <select name="company_id" id="company_id" class="form-control" required>
+                            <option value="">Select Company</option>
+                            <!-- Populated via JS -->
+                        </select>
+                    </div>
+                    <div class="form-group" style="flex: 1;">
+                        <label class="form-label">Job Role</label>
+                        <input type="text" name="job_role" id="job_role" class="form-control" required>
+                    </div>
+                </div>
+
+                <div class="flex gap-4">
+                    <div class="form-group" style="flex: 1;">
+                        <label class="form-label">Job Type</label>
+                        <select name="job_type" id="job_type" class="form-control" required>
+                            <option value="Full Time">Full Time</option>
+                            <option value="Internship">Internship</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="flex: 1;">
+                        <label class="form-label">CTC (LPA)</label>
+                        <input type="number" step="0.1" name="ctc" id="ctc" class="form-control" required>
+                    </div>
+                    <div class="form-group" style="flex: 1;">
+                        <label class="form-label">Location</label>
+                        <input type="text" name="location" id="location" class="form-control" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Description</label>
+                    <textarea name="description" id="description" class="form-control" rows="3"></textarea>
+                </div>
+
+                <div class="flex gap-4">
+                    <div class="form-group" style="flex: 1;">
+                        <label class="form-label">Min CGPA</label>
+                        <input type="number" step="0.01" name="min_cgpa" id="min_cgpa" class="form-control" required>
+                    </div>
+                    <div class="form-group" style="flex: 1;">
+                        <label class="form-label">Batch (Year)</label>
+                        <input type="number" name="batch" id="batch" class="form-control" value="2025" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Required Skills</label>
+                    <div class="tag-container" id="skills-container">
+                        <input type="text" class="tag-input" id="skills-input" placeholder="Type and press Enter">
+                    </div>
+                    <input type="hidden" name="skills_required" id="skills-hidden">
+                </div>
+
+                <div class="flex gap-4">
+                    <div class="form-group" style="flex: 1;">
+                        <label class="form-label">Application Deadline</label>
+                        <input type="datetime-local" name="deadline" id="deadline" class="form-control" required>
+                    </div>
+                    <div class="form-group" style="flex: 1;">
+                        <label class="form-label">Drive Date</label>
+                        <input type="datetime-local" name="drive_date" id="drive_date" class="form-control" required>
+                    </div>
+                </div>
+
+                <div class="flex justify-end gap-4 mt-4">
+                    <button type="button" onclick="closeDriveModal()" class="btn btn-outline">Cancel</button>
+                    <button type="submit" id="save-btn" class="btn btn-primary">Save Drive</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="../js/config.js"></script>
+    <script src="../js/api.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/admin.js"></script>
+</body>
+
+</html>

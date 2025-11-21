@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - PMS</title>
+    <link rel="stylesheet" href="../css/global.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/pages.css">
+    <link rel="stylesheet" href="../css/toast.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .chart-container {
+            position: relative;
+            height: 300px;
+            width: 100%;
+        }
+
+        .activity-feed {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .activity-item {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+
+        .activity-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #f3f4f6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="container nav-container">
+            <a href="dashboard.html" class="nav-brand">PMS Admin</a>
+            <div class="nav-links">
+                <span id="user-name" class="nav-link">Admin</span>
+                <a href="#" onclick="Auth.logout()" class="nav-link">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container">
+        <div class="dashboard-grid">
+            <aside class="sidebar">
+                <nav class="sidebar-nav">
+                    <a href="dashboard.html" class="sidebar-link active">Dashboard</a>
+                    <a href="students.html" class="sidebar-link">Students</a>
+                    <a href="companies.html" class="sidebar-link">Companies</a>
+                    <a href="drives.html" class="sidebar-link">Job Drives</a>
+                    <a href="applications.html" class="sidebar-link">Applications</a>
+                </nav>
+            </aside>
+
+            <section class="content">
+                <div class="flex justify-between items-center mb-4">
+                    <h2>Analytics Dashboard</h2>
+                    <div class="flex gap-2">
+                        <button onclick="exportAnalytics()" class="btn btn-outline btn-sm">Export Report</button>
+                    </div>
+                </div>
+
+                <!-- KPI Cards -->
+                <div class="stats-grid mb-4">
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: #e0f2fe; color: var(--primary);">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <users></users>
+                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="9" cy="7" r="4"></circle>
+                                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                            </svg>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="total-students">0</h3>
+                            <p>Total Students</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: #fef3c7; color: var(--warning);">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+                                <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+                            </svg>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="active-drives">0</h3>
+                            <p>Active Drives</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: #d1fae5; color: var(--success);">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                <polyline points="14 2 14 8 20 8"></polyline>
+                                <line x1="16" y1="13" x2="8" y2="13"></line>
+                                <line x1="16" y1="17" x2="8" y2="17"></line>
+                                <polyline points="10 9 9 9 8 9"></polyline>
+                            </svg>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="total-applications">0</h3>
+                            <p>Total Applications</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon" style="background: #fee2e2; color: var(--danger);">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                            </svg>
+                        </div>
+                        <div class="stat-info">
+                            <h3 id="placement-rate">0%</h3>
+                            <p>Placement Rate</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts Section -->
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                    <div class="card">
+                        <h3>Applications per Drive</h3>
+                        <div class="chart-container">
+                            <canvas id="appsPerDriveChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h3>Branch-wise Distribution</h3>
+                        <div class="chart-container">
+                            <canvas id="branchDistChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                    <!-- Recent Activity -->
+                    <div class="card">
+                        <h3>Recent Activity</h3>
+                        <div class="activity-feed" id="activity-feed">
+                            <p class="text-center text-muted">Loading activity...</p>
+                        </div>
+                    </div>
+
+                    <!-- Quick Actions -->
+                    <div class="card">
+                        <h3>Quick Actions</h3>
+                        <div class="flex flex-col gap-2 mt-4">
+                            <a href="drives.html?action=new" class="btn btn-primary">Add New Drive</a>
+                            <a href="companies.html?action=new" class="btn btn-outline">Add Company</a>
+                            <button onclick="alert('Announcement feature coming soon!')" class="btn btn-outline">Send
+                                Announcement</button>
+                        </div>
+                    </div>
+                    <!DOCTYPE html>
+                    <html lang="en">
+
+                    <head>
+                        <meta charset="UTF-8">
+                        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                        <title>Admin Dashboard - PMS</title>
+                        <link rel="stylesheet" href="../css/global.css">
+                        <link rel="stylesheet" href="../css/components.css">
+                        <link rel="stylesheet" href="../css/pages.css">
+                        <link rel="stylesheet" href="../css/toast.css">
+                        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+                        <style>
+                            .chart-container {
+                                position: relative;
+                                height: 300px;
+                                width: 100%;
+                            }
+
+                            .activity-feed {
+                                max-height: 400px;
+                                overflow-y: auto;
+                            }
+
+                            .activity-item {
+                                padding: 1rem;
+                                border-bottom: 1px solid var(--border);
+                                display: flex;
+                                gap: 1rem;
+                                align-items: center;
+                            }
+
+                            .activity-item:last-child {
+                                border-bottom: none;
+                            }
+
+                            .activity-icon {
+                                width: 32px;
+                                height: 32px;
+                                border-radius: 50%;
+                                background: #f3f4f6;
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                color: var(--primary);
+                            }
+                        </style>
+                    </head>
+
+                    <body>
+                        <nav class="navbar">
+                            <div class="container nav-container">
+                                <a href="dashboard.html" class="nav-brand">PMS Admin</a>
+                                <div class="nav-links">
+                                    <span id="user-name" class="nav-link">Admin</span>
+                                    <a href="#" onclick="Auth.logout()" class="nav-link">Logout</a>
+                                </div>
+                            </div>
+                        </nav>
+
+                        <main class="container">
+                            <div class="dashboard-grid">
+                                <aside class="sidebar">
+                                    <nav class="sidebar-nav">
+                                        <a href="dashboard.html" class="sidebar-link active">Dashboard</a>
+                                        <a href="students.html" class="sidebar-link">Students</a>
+                                        <a href="companies.html" class="sidebar-link">Companies</a>
+                                        <a href="drives.html" class="sidebar-link">Job Drives</a>
+                                        <a href="applications.html" class="sidebar-link">Applications</a>
+                                    </nav>
+                                </aside>
+
+                                <section class="content">
+                                    <div class="flex justify-between items-center mb-4">
+                                        <h2>Analytics Dashboard</h2>
+                                        <div class="flex gap-2">
+                                            <button onclick="exportAnalytics()" class="btn btn-outline btn-sm">Export
+                                                Report</button>
+                                        </div>
+                                    </div>
+
+                                    <!-- KPI Cards -->
+                                    <div class="stats-grid mb-4">
+                                        <div class="stat-card">
+                                            <div class="stat-icon" style="background: #e0f2fe; color: var(--primary);">
+                                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
+                                                    stroke="currentColor" stroke-width="2">
+                                                    <users></users>
+                                                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                                                    <circle cx="9" cy="7" r="4"></circle>
+                                                    <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                                                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                                                </svg>
+                                            </div>
+                                            <div class="stat-info">
+                                                <h3 id="total-students">0</h3>
+                                                <p>Total Students</p>
+                                            </div>
+                                        </div>
+                                        <div class="stat-card">
+                                            <div class="stat-icon" style="background: #fef3c7; color: var(--warning);">
+                                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
+                                                    stroke="currentColor" stroke-width="2">
+                                                    <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
+                                                    <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path>
+                                                </svg>
+                                            </div>
+                                            <div class="stat-info">
+                                                <h3 id="active-drives">0</h3>
+                                                <p>Active Drives</p>
+                                            </div>
+                                        </div>
+                                        <div class="stat-card">
+                                            <div class="stat-icon" style="background: #d1fae5; color: var(--success);">
+                                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
+                                                    stroke="currentColor" stroke-width="2">
+                                                    <path
+                                                        d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z">
+                                                    </path>
+                                                    <polyline points="14 2 14 8 20 8"></polyline>
+                                                    <line x1="16" y1="13" x2="8" y2="13"></line>
+                                                    <line x1="16" y1="17" x2="8" y2="17"></line>
+                                                    <polyline points="10 9 9 9 8 9"></polyline>
+                                                </svg>
+                                            </div>
+                                            <div class="stat-info">
+                                                <h3 id="total-applications">0</h3>
+                                                <p>Total Applications</p>
+                                            </div>
+                                        </div>
+                                        <div class="stat-card">
+                                            <div class="stat-icon" style="background: #fee2e2; color: var(--danger);">
+                                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
+                                                    stroke="currentColor" stroke-width="2">
+                                                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                                                </svg>
+                                            </div>
+                                            <div class="stat-info">
+                                                <h3 id="placement-rate">0%</h3>
+                                                <p>Placement Rate</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Charts Section -->
+                                    <div class="grid grid-cols-2 gap-4 mb-4">
+                                        <div class="card">
+                                            <h3>Applications per Drive</h3>
+                                            <div class="chart-container">
+                                                <canvas id="appsPerDriveChart"></canvas>
+                                            </div>
+                                        </div>
+                                        <div class="card">
+                                            <h3>Branch-wise Distribution</h3>
+                                            <div class="chart-container">
+                                                <canvas id="branchDistChart"></canvas>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="grid grid-cols-2 gap-4 mb-4">
+                                        <!-- Recent Activity -->
+                                        <div class="card">
+                                            <h3>Recent Activity</h3>
+                                            <div class="activity-feed" id="activity-feed">
+                                                <p class="text-center text-muted">Loading activity...</p>
+                                            </div>
+                                        </div>
+
+                                        <!-- Quick Actions -->
+                                        <div class="card">
+                                            <h3>Quick Actions</h3>
+                                            <div class="flex flex-col gap-2 mt-4">
+                                                <a href="drives.html?action=new" class="btn btn-primary">Add New
+                                                    Drive</a>
+                                                <a href="companies.html?action=new" class="btn btn-outline">Add
+                                                    Company</a>
+                                                <button onclick="alert('Announcement feature coming soon!')"
+                                                    class="btn btn-outline">Send
+                                                    Announcement</button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </section>
+                            </div>
+                        </main>
+
+                        <script src="../js/config.js"></script>
+                        <script src="../js/api.js"></script>
+                        <script src="../js/auth.js"></script>
+                        <script src="../js/admin.js"></script>
+                        <link rel="stylesheet" href="../css/chatbot.css">
+                        <script src="../js/chatbot.js"></script>
+                    </body>
+
+                    </html>

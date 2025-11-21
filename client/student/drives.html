@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Browse Drives - PMS</title>
+    <link rel="stylesheet" href="../css/global.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/pages.css">
+    <link rel="stylesheet" href="../css/toast.css">
+    <style>
+        .filters-bar {
+            background: white;
+            padding: 1rem;
+            border-radius: var(--radius-md);
+            box-shadow: var(--shadow-sm);
+            margin-bottom: 2rem;
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .drive-card {
+            background: white;
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            box-shadow: var(--shadow-md);
+            transition: transform 0.2s;
+            border: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .drive-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .drive-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 1rem;
+        }
+
+        .company-logo {
+            width: 50px;
+            height: 50px;
+            background: #f3f4f6;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: var(--primary);
+            font-size: 1.2rem;
+        }
+
+        .drive-meta {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+            color: var(--text-light);
+        }
+
+        .drive-skills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .skill-badge {
+            background: #e0f2fe;
+            color: var(--primary);
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="container nav-container">
+            <a href="dashboard.html" class="nav-brand">PMS Student</a>
+            <div class="nav-links">
+                <span id="user-name" class="nav-link">Student</span>
+                <a href="#" onclick="Auth.logout()" class="nav-link">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container">
+        <div class="dashboard-grid">
+            <aside class="sidebar">
+                <nav class="sidebar-nav">
+                    <a href="dashboard.html" class="sidebar-link">Dashboard</a>
+                    <a href="profile.html" class="sidebar-link">My Profile</a>
+                    <a href="drives.html" class="sidebar-link active">Browse Drives</a>
+                    <a href="applications.html" class="sidebar-link">My Applications</a>
+                    <a href="notifications.html" class="sidebar-link">Notifications</a>
+                </nav>
+            </aside>
+
+            <section class="content">
+                <h2 class="mb-4">Active Job Drives</h2>
+
+                <!-- Filters -->
+                <div class="filters-bar">
+                    <div style="flex: 2; min-width: 200px;">
+                        <input type="text" id="search-input" class="form-control"
+                            placeholder="Search company or job title...">
+                    </div>
+                    <div style="flex: 1; min-width: 150px;">
+                        <select id="filter-type" class="form-control">
+                            <option value="">All Types</option>
+                            <option value="Full Time">Full Time</option>
+                            <option value="Internship">Internship</option>
+                        </select>
+                    </div>
+                    <div style="flex: 1; min-width: 150px;">
+                        <input type="number" id="filter-ctc" class="form-control" placeholder="Min CTC (LPA)">
+                    </div>
+                    <button id="filter-btn" class="btn btn-primary">Apply Filters</button>
+                </div>
+
+                <!-- Drives Grid -->
+                <div id="drives-grid" class="grid grid-cols-2 gap-4">
+                    <p class="text-center text-muted col-span-2">Loading drives...</p>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Drive Details Modal -->
+    <div id="drive-modal" class="modal hidden"
+        style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; display: none; align-items: center; justify-content: center;">
+        <div class="card" style="width: 90%; max-width: 600px; max-height: 90vh; overflow-y: auto;">
+            <div class="flex justify-between items-center mb-4">
+                <h2 id="modal-title">Job Details</h2>
+                <button onclick="closeModal()"
+                    style="background: none; border: none; font-size: 1.5rem; cursor: pointer;">&times;</button>
+            </div>
+            <div id="modal-content">
+                <!-- Content injected via JS -->
+            </div>
+            <div class="flex justify-end gap-4 mt-4">
+                <button onclick="closeModal()" class="btn btn-outline">Close</button>
+                <button id="modal-apply-btn" class="btn btn-primary">Apply Now</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/config.js"></script>
+    <script src="../js/api.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/student.js"></script>
+    <script>
+        function closeModal() {
+            document.getElementById('drive-modal').style.display = 'none';
+        }
+    </script>
+</body>
+
+</html>

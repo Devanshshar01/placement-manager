@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Applications - PMS Admin</title>
+    <link rel="stylesheet" href="../css/global.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/pages.css">
+    <link rel="stylesheet" href="../css/toast.css">
+    <style>
+        .app-layout {
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            gap: 1.5rem;
+            align-items: start;
+        }
+
+        .filter-panel {
+            background: white;
+            padding: 1.5rem;
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border);
+            position: sticky;
+            top: 1rem;
+        }
+
+        .filter-group {
+            margin-bottom: 1rem;
+        }
+
+        .filter-group label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            color: var(--text-light);
+        }
+
+        .bulk-toolbar {
+            background: #f3f4f6;
+            padding: 0.75rem 1rem;
+            border-radius: var(--radius-md);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            display: none;
+            /* Hidden by default */
+        }
+
+        .bulk-toolbar.active {
+            display: flex;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .data-table th {
+            background: #f9fafb;
+            font-weight: 600;
+            color: var(--text-light);
+        }
+
+        .skill-match {
+            color: var(--success);
+            font-weight: 500;
+        }
+
+        .skill-miss {
+            color: var(--text-light);
+            opacity: 0.7;
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="container nav-container">
+            <a href="dashboard.html" class="nav-brand">PMS Admin</a>
+            <div class="nav-links">
+                <span id="user-name" class="nav-link">Admin</span>
+                <a href="#" onclick="Auth.logout()" class="nav-link">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container">
+        <div class="dashboard-grid">
+            <aside class="sidebar">
+                <nav class="sidebar-nav">
+                    <a href="dashboard.html" class="sidebar-link">Dashboard</a>
+                    <a href="students.html" class="sidebar-link">Students</a>
+                    <a href="companies.html" class="sidebar-link">Companies</a>
+                    <a href="drives.html" class="sidebar-link">Job Drives</a>
+                    <a href="applications.html" class="sidebar-link active">Applications</a>
+                </nav>
+            </aside>
+
+            <section class="content">
+                <div class="flex justify-between items-center mb-4">
+                    <h2>Manage Applications</h2>
+                    <button onclick="exportApplications()" class="btn btn-outline btn-sm">Export All</button>
+                </div>
+
+                <div class="app-layout">
+                    <!-- Filter Panel -->
+                    <div class="filter-panel">
+                        <h3 class="text-lg font-bold mb-4">Filters</h3>
+
+                        <div class="filter-group">
+                            <label>Company</label>
+                            <select id="filter-company" class="form-control">
+                                <option value="">All Companies</option>
+                                <!-- Populated via JS -->
+                            </select>
+                        </div>
+
+                        <div class="filter-group">
+                            <label>Job Drive</label>
+                            <select id="filter-drive" class="form-control">
+                                <option value="">All Drives</option>
+                                <!-- Populated via JS -->
+                            </select>
+                        </div>
+
+                        <div class="filter-group">
+                            <label>Status</label>
+                            <select id="filter-status" class="form-control">
+                                <option value="">All Status</option>
+                                <option value="Applied">Applied</option>
+                                <option value="Shortlisted">Shortlisted</option>
+                                <option value="Selected">Selected</option>
+                                <option value="Rejected">Rejected</option>
+                            </select>
+                        </div>
+
+                        <div class="filter-group">
+                            <label>Branch</label>
+                            <select id="filter-branch" class="form-control">
+                                <option value="">All Branches</option>
+                                <option value="Computer Science">Computer Science</option>
+                                <option value="Information Technology">Information Technology</option>
+                                <option value="Electronics">Electronics</option>
+                                <option value="Mechanical">Mechanical</option>
+                                <option value="Civil">Civil</option>
+                            </select>
+                        </div>
+
+                        <div class="filter-group">
+                            <label>Min CGPA</label>
+                            <input type="number" id="filter-cgpa" class="form-control" step="0.1">
+                        </div>
+
+                        <button id="apply-filters" class="btn btn-primary" style="width: 100%;">Apply Filters</button>
+                        <button id="reset-filters" class="btn btn-outline mt-2" style="width: 100%;">Reset</button>
+                    </div>
+
+                    <!-- Main Content -->
+                    <div>
+                        <!-- Bulk Actions -->
+                        <div id="bulk-toolbar" class="bulk-toolbar">
+                            <span class="font-bold"><span id="selected-count">0</span> selected</span>
+                            <div class="flex gap-2 ml-auto">
+                                <button onclick="bulkUpdate('Shortlisted')"
+                                    class="btn btn-sm btn-outline">Shortlist</button>
+                                <button onclick="bulkUpdate('Selected')" class="btn btn-sm btn-success">Select</button>
+                                <button onclick="bulkUpdate('Rejected')" class="btn btn-sm btn-outline text-danger"
+                                    style="border-color: var(--danger); color: var(--danger);">Reject</button>
+                            </div>
+                        </div>
+
+                        <div style="overflow-x: auto;">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 40px;"><input type="checkbox" id="select-all"></th>
+                                        <th>Student</th>
+                                        <th>Branch / CGPA</th>
+                                        <th>Company / Role</th>
+                                        <th>Applied Date</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="apps-table-body">
+                                    <tr>
+                                        <td colspan="7" class="text-center p-4">Loading...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Pagination -->
+                        <div class="flex justify-between items-center mt-4">
+                            <span class="text-sm text-muted">Showing <span id="showing-range">0-0</span> of <span
+                                    id="total-count">0</span></span>
+                            <div class="flex gap-2">
+                                <button id="prev-page" class="btn btn-outline btn-sm" disabled>Previous</button>
+                                <button id="next-page" class="btn btn-outline btn-sm" disabled>Next</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Application Details Modal -->
+    <div id="app-modal" class="modal hidden"
+        style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; display: none; align-items: center; justify-content: center;">
+        <div class="card" style="width: 90%; max-width: 800px; max-height: 90vh; overflow-y: auto;">
+            <div class="flex justify-between items-center mb-4">
+                <h2 id="modal-title">Application Details</h2>
+                <button onclick="closeAppModal()"
+                    style="background: none; border: none; font-size: 1.5rem; cursor: pointer;">&times;</button>
+            </div>
+            <div id="modal-content">
+                <!-- Injected via JS -->
+            </div>
+            <div class="mt-6 pt-4 border-t flex justify-end gap-4">
+                <button onclick="closeAppModal()" class="btn btn-outline">Close</button>
+                <div class="flex gap-2" id="modal-actions">
+                    <!-- Dynamic actions -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/config.js"></script>
+    <script src="../js/api.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/admin.js"></script>
+</body>
+
+</html>

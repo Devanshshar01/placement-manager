@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Companies - PMS Admin</title>
+    <link rel="stylesheet" href="../css/global.css">
+    <link rel="stylesheet" href="../css/components.css">
+    <link rel="stylesheet" href="../css/pages.css">
+    <link rel="stylesheet" href="../css/toast.css">
+    <style>
+        .company-card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            transition: transform 0.2s;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .company-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .company-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .company-logo {
+            width: 60px;
+            height: 60px;
+            background: #f3f4f6;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: var(--primary);
+            font-size: 1.5rem;
+        }
+
+        .company-info p {
+            font-size: 0.9rem;
+            color: var(--text-light);
+            margin-bottom: 0.25rem;
+        }
+
+        .company-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: auto;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border);
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="container nav-container">
+            <a href="dashboard.html" class="nav-brand">PMS Admin</a>
+            <div class="nav-links">
+                <span id="user-name" class="nav-link">Admin</span>
+                <a href="#" onclick="Auth.logout()" class="nav-link">Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container">
+        <div class="dashboard-grid">
+            <aside class="sidebar">
+                <nav class="sidebar-nav">
+                    <a href="dashboard.html" class="sidebar-link">Dashboard</a>
+                    <a href="students.html" class="sidebar-link">Students</a>
+                    <a href="companies.html" class="sidebar-link active">Companies</a>
+                    <a href="drives.html" class="sidebar-link">Job Drives</a>
+                    <a href="applications.html" class="sidebar-link">Applications</a>
+                </nav>
+            </aside>
+
+            <section class="content">
+                <div class="flex justify-between items-center mb-4">
+                    <h2>Manage Companies</h2>
+                    <button onclick="openCompanyModal()" class="btn btn-primary">Add Company</button>
+                </div>
+
+                <div class="mb-4">
+                    <input type="text" id="search-input" class="form-control" placeholder="Search companies...">
+                </div>
+
+                <div id="companies-grid" class="grid grid-cols-2 gap-4">
+                    <p class="col-span-2 text-center text-muted">Loading companies...</p>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Company Modal -->
+    <div id="company-modal" class="modal hidden"
+        style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; display: none; align-items: center; justify-content: center;">
+        <div class="card" style="width: 90%; max-width: 600px; max-height: 90vh; overflow-y: auto;">
+            <div class="flex justify-between items-center mb-4">
+                <h2 id="modal-title">Add Company</h2>
+                <button onclick="closeCompanyModal()"
+                    style="background: none; border: none; font-size: 1.5rem; cursor: pointer;">&times;</button>
+            </div>
+            <form id="company-form">
+                <input type="hidden" name="id" id="company-id">
+                <div class="form-group">
+                    <label class="form-label">Company Name</label>
+                    <input type="text" name="company_name" id="company_name" class="form-control" required>
+                </div>
+                <div class="flex gap-4">
+                    <div class="form-group" style="flex: 1;">
+                        <label class="form-label">Industry</label>
+                        <input type="text" name="industry" id="industry" class="form-control">
+                    </div>
+                    <div class="form-group" style="flex: 1;">
+                        <label class="form-label">Website</label>
+                        <input type="url" name="website" id="website" class="form-control">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Description</label>
+                    <textarea name="description" id="description" class="form-control" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Location</label>
+                    <input type="text" name="location" id="location" class="form-control">
+                </div>
+
+                <h4 class="mb-2 mt-4 text-primary">HR Contact</h4>
+                <div class="form-group">
+                    <label class="form-label">HR Name</label>
+                    <input type="text" name="hr_name" id="hr_name" class="form-control">
+                </div>
+                <div class="flex gap-4">
+                    <div class="form-group" style="flex: 1;">
+                        <label class="form-label">HR Email</label>
+                        <input type="email" name="hr_email" id="hr_email" class="form-control">
+                    </div>
+                    <div class="form-group" style="flex: 1;">
+                        <label class="form-label">HR Phone</label>
+                        <input type="tel" name="hr_phone" id="hr_phone" class="form-control">
+                    </div>
+                </div>
+
+                <div class="flex justify-end gap-4 mt-4">
+                    <button type="button" onclick="closeCompanyModal()" class="btn btn-outline">Cancel</button>
+                    <button type="submit" id="save-btn" class="btn btn-primary">Save Company</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="../js/config.js"></script>
+    <script src="../js/api.js"></script>
+    <script src="../js/auth.js"></script>
+    <script src="../js/admin.js"></script>
+</body>
+
+</html>
