@@ -23,45 +23,31 @@ class API {
         try {
             const response = await fetch(`${CONFIG.API_BASE_URL}${endpoint}`, config);
             const data = await response.json();
-
-            if (!response.ok) {
-                // Handle specific status codes
-                if (response.status === 401) {
-                    // Unauthorized - redirect to login if not already there
-                    if (!window.location.pathname.includes('login.html') && !window.location.pathname.includes('register.html')) {
-                        Auth.logout(); // Clear local state
-                        return;
-                    }
-                }
-
-                const errorMessage = data.message || data.error || 'Something went wrong';
-                Auth.showToast(errorMessage, 'error');
-                throw new Error(errorMessage);
-            }
+        }
 
             return data;
-        } catch (error) {
-            // Handle network errors
-            if (error.message === 'Failed to fetch') {
-                Auth.showToast('Connection failed. Please check your internet.', 'error');
-            }
-            throw error;
+    } catch(error) {
+        // Handle network errors
+        if (error.message === 'Failed to fetch') {
+            Auth.showToast('Connection failed. Please check your internet.', 'error');
         }
+        throw error;
     }
+}
 
     static get(endpoint) {
-        return this.request(endpoint, 'GET');
-    }
+    return this.request(endpoint, 'GET');
+}
 
     static post(endpoint, body) {
-        return this.request(endpoint, 'POST', body);
-    }
+    return this.request(endpoint, 'POST', body);
+}
 
     static put(endpoint, body) {
-        return this.request(endpoint, 'PUT', body);
-    }
+    return this.request(endpoint, 'PUT', body);
+}
 
-    static delete(endpoint) {
-        return this.request(endpoint, 'DELETE');
-    }
+    static delete (endpoint) {
+    return this.request(endpoint, 'DELETE');
+}
 }
